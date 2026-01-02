@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
+import { formatPrice } from "@/lib/currency";
 
 export default function CheckoutPage() {
   const { cart, getCartTotal, clearCart } = useCart();
@@ -219,7 +220,7 @@ export default function CheckoutPage() {
                           Qty: {item.quantity}
                         </p>
                         <p className="text-sm font-semibold">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          {formatPrice(item.price * item.quantity)}
                         </p>
                       </div>
                     </div>
@@ -228,7 +229,7 @@ export default function CheckoutPage() {
                   <div className="border-t pt-4 space-y-2">
                     <div className="flex justify-between">
                       <span>Subtotal</span>
-                      <span>${getCartTotal().toFixed(2)}</span>
+                      <span>{formatPrice(getCartTotal())}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Shipping</span>
@@ -236,7 +237,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="border-t pt-2 flex justify-between font-bold text-lg">
                       <span>Total</span>
-                      <span>${getCartTotal().toFixed(2)}</span>
+                      <span>{formatPrice(getCartTotal())}</span>
                     </div>
                   </div>
                 </div>

@@ -31,6 +31,9 @@ export async function POST(request) {
         features: body.features || [],
         details: body.details || "",
         inStock: body.inStock !== false,
+        isFeatured: body.isFeatured || false,
+        isNewArrival: body.isNewArrival || false,
+        isFlashSale: body.isFlashSale || false,
       },
     });
     return NextResponse.json(product, { status: 201 });

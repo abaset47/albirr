@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { formatPrice } from "@/lib/currency";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
@@ -164,7 +165,7 @@ export default function AdminOrdersPage() {
                   <div className="text-right">
                     <p className="text-sm font-semibold mb-1">Order Total:</p>
                     <p className="text-2xl font-bold text-blue-600">
-                      ${order.total.toFixed(2)}
+                      {formatPrice(order.total)}
                     </p>
                   </div>
                 </div>
@@ -186,11 +187,12 @@ export default function AdminOrdersPage() {
                         <div className="flex-grow">
                           <p className="font-medium">{item.product.name}</p>
                           <p className="text-sm text-gray-600">
-                            Quantity: {item.quantity} × ${item.price.toFixed(2)}
+                            Quantity: {item.quantity} ×{" "}
+                            {formatPrice(item.price)}
                           </p>
                         </div>
                         <p className="font-semibold">
-                          ${(item.quantity * item.price).toFixed(2)}
+                          {formatPrice(item.quantity * item.price)}
                         </p>
                       </div>
                     ))}

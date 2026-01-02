@@ -5,6 +5,10 @@ const mailjet = Mailjet.apiConnect(
   process.env.MJ_APIKEY_PRIVATE
 );
 
+function formatPrice(amount) {
+  return `₹${amount.toFixed(2)}`;
+}
+
 export async function sendOrderEmailToAdmin(orderData) {
   const { orderId, customerName, customerEmail, items, total } = orderData;
 
@@ -19,12 +23,12 @@ export async function sendOrderEmailToAdmin(orderData) {
       <td style="padding: 10px; border-bottom: 1px solid #ddd;">${
         item.quantity
       }</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd;">$${item.price.toFixed(
-        2
+      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${formatPrice(
+        item.price
       )}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd;">$${(
+      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${formatPrice(
         item.quantity * item.price
-      ).toFixed(2)}</td>
+      )}</td>
     </tr>
   `
     )
@@ -57,7 +61,7 @@ export async function sendOrderEmailToAdmin(orderData) {
       </table>
 
       <div style="text-align: right; font-size: 18px; font-weight: bold; margin-top: 20px;">
-        <p>Total: $${total.toFixed(2)}</p>
+        <p>Total: ${formatPrice(total)}</p>
       </div>
 
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
@@ -83,8 +87,8 @@ export async function sendOrderEmailToAdmin(orderData) {
             },
           ],
           Subject: `New Order #${orderId} - ${customerName}`,
-          TextPart: `New order received from ${customerName} (${customerEmail}). Order ID: #${orderId}. Total: $${total.toFixed(
-            2
+          TextPart: `New order received from ${customerName} (${customerEmail}). Order ID: #${orderId}. Total: ${formatPrice(
+            total
           )}`,
           HTMLPart: htmlContent,
         },
@@ -112,12 +116,12 @@ export async function sendOrderConfirmationToCustomer(orderData) {
       <td style="padding: 10px; border-bottom: 1px solid #ddd;">${
         item.quantity
       }</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd;">$${item.price.toFixed(
-        2
+      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${formatPrice(
+        item.price
       )}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd;">$${(
+      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${formatPrice(
         item.quantity * item.price
-      ).toFixed(2)}</td>
+      )}</td>
     </tr>
   `
     )
@@ -151,7 +155,7 @@ export async function sendOrderConfirmationToCustomer(orderData) {
       </table>
 
       <div style="text-align: right; font-size: 18px; font-weight: bold; margin-top: 20px;">
-        <p>Total: $${total.toFixed(2)}</p>
+        <p>Total: ${formatPrice(total)}</p>
       </div>
 
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
@@ -179,8 +183,8 @@ export async function sendOrderConfirmationToCustomer(orderData) {
             },
           ],
           Subject: `Order Confirmation #${orderId}`,
-          TextPart: `Thank you for your order! Order ID: #${orderId}. Total: $${total.toFixed(
-            2
+          TextPart: `Thank you for your order! Order ID: #${orderId}. Total: ${formatPrice(
+            total
           )}`,
           HTMLPart: htmlContent,
         },

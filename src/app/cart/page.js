@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { formatPrice } from "@/lib/currency";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } =
@@ -54,7 +55,9 @@ export default function CartPage() {
                       <p className="text-gray-600 text-sm mb-2">
                         {item.description}
                       </p>
-                      <p className="text-blue-600 font-bold">${item.price}</p>
+                      <p className="text-blue-600 font-bold">
+                        {formatPrice(item.price)}
+                      </p>
                     </div>
 
                     <div className="flex flex-col items-end gap-2">
@@ -89,7 +92,7 @@ export default function CartPage() {
                       </div>
 
                       <p className="font-semibold">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {formatPrice(item.price * item.quantity)}
                       </p>
                     </div>
                   </div>
@@ -107,7 +110,7 @@ export default function CartPage() {
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>${getCartTotal().toFixed(2)}</span>
+                    <span>{formatPrice(getCartTotal())}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
@@ -115,7 +118,7 @@ export default function CartPage() {
                   </div>
                   <div className="border-t pt-2 flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>${getCartTotal().toFixed(2)}</span>
+                    <span>{formatPrice(getCartTotal())}</span>
                   </div>
                 </div>
 

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
+import { formatPrice } from "@/lib/currency";
 
 export default function ProductsClient({ initialProducts }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -99,19 +100,19 @@ export default function ProductsClient({ initialProducts }) {
                   variant={priceRange === "under50" ? "default" : "outline"}
                   onClick={() => setPriceRange("under50")}
                 >
-                  Under $50
+                  {`Under ${formatPrice(50)}`}
                 </Button>
                 <Button
                   variant={priceRange === "50to100" ? "default" : "outline"}
                   onClick={() => setPriceRange("50to100")}
                 >
-                  $50 - $100
+                  {`${formatPrice(50)} - ${formatPrice(100)}`}
                 </Button>
                 <Button
                   variant={priceRange === "over100" ? "default" : "outline"}
                   onClick={() => setPriceRange("over100")}
                 >
-                  Over $100
+                  {`Over ${formatPrice(100)}`}
                 </Button>
               </div>
             </div>

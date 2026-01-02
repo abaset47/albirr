@@ -4,6 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { formatPrice } from "@/lib/currency";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -14,6 +30,12 @@ export default function AdminDashboard() {
     lowStockProducts: 0,
   });
   const [recentOrders, setRecentOrders] = useState([]);
+  const [chartData, setChartData] = useState({
+    salesByDay: [],
+    ordersByStatus: [],
+    topProducts: [],
+    revenueByMonth: [],
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,15 +44,12 @@ export default function AdminDashboard() {
 
   async function fetchDashboardData() {
     try {
-      // Fetch products
       const productsRes = await fetch("/api/products");
       const products = await productsRes.json();
 
-      // Fetch orders
       const ordersRes = await fetch("/api/orders");
       const orders = await ordersRes.json();
 
-      // Calculate stats
       const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
       const pendingCount = orders.filter(
         (order) => order.status === "pending"
@@ -45,13 +64,112 @@ export default function AdminDashboard() {
         lowStockProducts: lowStock,
       });
 
-      // Get recent orders (last 5)
       setRecentOrders(orders.slice(0, 5));
+
+      // Prepare chart data
+      prepareChartData(orders, products);
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
     } finally {
       setLoading(false);
     }
+  }
+
+  function prepareChartData(orders, products) {
+    // Sales by last 7 days
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+
+      const dayOrders = orders.filter((order) => {
+        const orderDate = new Date(order.createdAt);
+        return orderDate.toDateString() === date.toDateString();
+      });
+
+      last7Days.push({
+        date: dateStr,
+        sales: dayOrders.reduce((sum, order) => sum + order.total, 0),
+        orders: dayOrders.length,
+      });
+    }
+
+    // Orders by status
+    const statusCounts = [
+      {
+        name: "Pending",
+        value: orders.filter((o) => o.status === "pending").length,
+        color: "#eab308",
+      },
+      {
+        name: "Processing",
+        value: orders.filter((o) => o.status === "processing").length,
+        color: "#3b82f6",
+      },
+      {
+        name: "Shipped",
+        value: orders.filter((o) => o.status === "shipped").length,
+        color: "#a855f7",
+      },
+      {
+        name: "Delivered",
+        value: orders.filter((o) => o.status === "delivered").length,
+        color: "#22c55e",
+      },
+      {
+        name: "Cancelled",
+        value: orders.filter((o) => o.status === "cancelled").length,
+        color: "#ef4444",
+      },
+    ].filter((item) => item.value > 0);
+
+    // Top products by quantity sold
+    const productSales = {};
+    orders.forEach((order) => {
+      order.orderItems.forEach((item) => {
+        if (!productSales[item.product.name]) {
+          productSales[item.product.name] = 0;
+        }
+        productSales[item.product.name] += item.quantity;
+      });
+    });
+
+    const topProducts = Object.entries(productSales)
+      .map(([name, quantity]) => ({ name, quantity }))
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5);
+
+    // Revenue by month (last 6 months)
+    const last6Months = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthStr = date.toLocaleDateString("en-US", { month: "short" });
+
+      const monthOrders = orders.filter((order) => {
+        const orderDate = new Date(order.createdAt);
+        return (
+          orderDate.getMonth() === date.getMonth() &&
+          orderDate.getFullYear() === date.getFullYear()
+        );
+      });
+
+      last6Months.push({
+        month: monthStr,
+        revenue: monthOrders.reduce((sum, order) => sum + order.total, 0),
+      });
+    }
+
+    setChartData({
+      salesByDay: last7Days,
+      ordersByStatus: statusCounts,
+      topProducts,
+      revenueByMonth: last6Months,
+    });
   }
 
   const getStatusColor = (status) => {
@@ -97,7 +215,7 @@ export default function AdminDashboard() {
     },
     {
       title: "Total Revenue",
-      value: `$${stats.revenue.toFixed(2)}`,
+      value: formatPrice(stats.revenue),
       icon: "💰",
       link: "/admin/orders",
     },
@@ -155,8 +273,112 @@ export default function AdminDashboard() {
         </Card>
       )}
 
+      {/* Charts Section */}
+      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+        {/* Sales Last 7 Days */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Sales Last 7 Days</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartData.salesByDay}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="sales"
+                  stroke="#2563eb"
+                  name="Sales ($)"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="orders"
+                  stroke="#22c55e"
+                  name="Orders"
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Orders by Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Orders by Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={chartData.ordersByStatus}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name}: ${value}`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {chartData.ordersByStatus.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Top Products */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Top 5 Products</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData.topProducts}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="name"
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="quantity" fill="#8b5cf6" name="Units Sold" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Revenue by Month */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue Last 6 Months</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData.revenueByMonth}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="revenue" fill="#22c55e" name="Revenue ($)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Recent Orders */}
-      <Card>
+      <Card className="mb-8">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Recent Orders</CardTitle>
           <Link href="/admin/orders">
@@ -186,7 +408,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-blue-600">
-                      ${order.total.toFixed(2)}
+                      {formatPrice(order.total)}
                     </p>
                     <p
                       className={`text-sm font-semibold ${getStatusColor(
@@ -209,7 +431,7 @@ export default function AdminDashboard() {
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid md:grid-cols-3 gap-6 mt-8">
+      <div className="grid md:grid-cols-3 gap-6">
         <Link href="/admin/products">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">

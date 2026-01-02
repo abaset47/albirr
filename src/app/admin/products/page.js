@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
+import { formatPrice } from "@/lib/currency";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState([]);
@@ -20,6 +21,9 @@ export default function AdminProductsPage() {
     category: "",
     stock: "",
     details: "",
+    isFeatured: false,
+    isNewArrival: false,
+    isFlashSale: false,
   });
 
   // Fetch products
@@ -97,6 +101,9 @@ export default function AdminProductsPage() {
       category: product.category,
       stock: product.stock.toString(),
       details: product.details || "",
+      isFeatured: product.isFeatured || false,
+      isNewArrival: product.isNewArrival || false,
+      isFlashSale: product.isFlashSale || false,
     });
     setShowForm(true);
   };
@@ -130,6 +137,9 @@ export default function AdminProductsPage() {
       category: "",
       stock: "",
       details: "",
+      isFeatured: false,
+      isNewArrival: false,
+      isFlashSale: false,
     });
   };
 
@@ -228,7 +238,7 @@ export default function AdminProductsPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Price ($)
+                    Price (₹)
                   </label>
                   <Input
                     type="number"
@@ -325,6 +335,63 @@ export default function AdminProductsPage() {
                 />
               </div>
 
+              {/* Homepage Sections */}
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium mb-3">
+                  Display in Homepage Sections:
+                </label>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isNewArrival}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          isNewArrival: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">
+                      Show in "New Arrivals" carousel
+                    </span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isFlashSale}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          isFlashSale: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">
+                      Show in "Flash Sale" section
+                    </span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.isFeatured}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          isFeatured: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">Mark as Featured Product</span>
+                  </label>
+                </div>
+              </div>
+
               <div className="flex gap-2">
                 <Button type="submit">
                   {editingProduct ? "Update Product" : "Add Product"}
@@ -369,7 +436,7 @@ export default function AdminProductsPage() {
                       </div>
                     </td>
                     <td className="p-4">{product.category}</td>
-                    <td className="p-4">${product.price.toFixed(2)}</td>
+                    <td className="p-4">{formatPrice(product.price)}</td>
                     <td className="p-4">
                       <span
                         className={

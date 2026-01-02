@@ -28,25 +28,35 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const body = await request.json();
 
+    const updateData = {
+      name: body.name,
+      description: body.description,
+      price: parseFloat(body.price),
+      image: body.image,
+      category: body.category,
+      stock: parseInt(body.stock),
+      inStock: body.inStock !== undefined ? body.inStock : true,
+    };
+
+    // Only add optional fields if they exist
+    if (body.features !== undefined) updateData.features = body.features;
+    if (body.details !== undefined) updateData.details = body.details;
+    if (body.isFeatured !== undefined) updateData.isFeatured = body.isFeatured;
+    if (body.isNewArrival !== undefined)
+      updateData.isNewArrival = body.isNewArrival;
+    if (body.isFlashSale !== undefined)
+      updateData.isFlashSale = body.isFlashSale;
+
     const product = await prisma.product.update({
       where: { id: parseInt(id) },
-      data: {
-        name: body.name,
-        description: body.description,
-        price: parseFloat(body.price),
-        image: body.image,
-        category: body.category,
-        stock: parseInt(body.stock),
-        features: body.features,
-        details: body.details,
-        inStock: body.inStock,
-      },
+      data: updateData,
     });
 
     return NextResponse.json(product);
   } catch (error) {
+    console.error("Update error:", error);
     return NextResponse.json(
-      { error: "Failed to update product" },
+      { error: "Failed to update product", details: error.message },
       { status: 500 }
     );
   }

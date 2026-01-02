@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect, use } from "react";
+import { formatPrice } from "@/lib/currency";
 
 export default function ProductDetailPage({ params }) {
   const resolvedParams = use(params);
@@ -103,7 +104,7 @@ export default function ProductDetailPage({ params }) {
             </div>
 
             <p className="text-3xl font-bold text-blue-600 mb-6">
-              ${product.price.toFixed(2)}
+              {formatPrice(product.price)}
             </p>
 
             <p className="text-gray-700 mb-6">

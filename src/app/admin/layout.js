@@ -85,6 +85,12 @@ export default function AdminLayout({ children }) {
                 >
                   Orders
                 </Link>
+                <Link
+                  href="/admin/testimonials"
+                  className="block px-4 py-2 rounded hover:bg-gray-100"
+                >
+                  Testimonials
+                </Link>
               </nav>
             </div>
           </div>

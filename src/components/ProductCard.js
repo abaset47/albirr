@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import { formatPrice } from "@/lib/currency";
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
@@ -34,7 +35,9 @@ export default function ProductCard({ product }) {
           </h3>
         </Link>
         <p className="text-gray-600 text-sm mb-3">{product.description}</p>
-        <p className="text-2xl font-bold text-blue-600">${product.price}</p>
+        <p className="text-2xl font-bold text-blue-600">
+          {formatPrice(product.price)}
+        </p>
       </CardContent>
 
       <CardFooter className="p-4 pt-0">

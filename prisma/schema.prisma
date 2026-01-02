@@ -18,6 +18,9 @@ model Product {
   features    String[] @default([])
   details     String?
   inStock     Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  isNewArrival Boolean @default(false)
+  isFlashSale Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   orderItems  OrderItem[]
@@ -49,6 +52,16 @@ model Admin {
   email     String   @unique
   password  String
   name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Testimonial {
+  id        Int      @id @default(autoincrement())
+  name      String
+  text      String
+  rating    Int      @default(5)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
