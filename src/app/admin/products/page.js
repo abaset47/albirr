@@ -18,6 +18,7 @@ export default function AdminProductsPage() {
     description: "",
     price: "",
     image: "",
+    images: [], // Additional images array
     category: "",
     stock: "",
     details: "",
@@ -26,7 +27,6 @@ export default function AdminProductsPage() {
     isFlashSale: false,
   });
 
-  // Fetch products
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -47,12 +47,17 @@ export default function AdminProductsPage() {
     e.preventDefault();
 
     try {
+      const productData = {
+        ...formData,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+      };
+
       if (editingProduct) {
-        // Update existing product
         const res = await fetch(`/api/products/${editingProduct.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(productData),
         });
 
         if (res.ok) {
@@ -60,11 +65,10 @@ export default function AdminProductsPage() {
           alert("Product updated successfully!");
         }
       } else {
-        // Create new product
         const res = await fetch("/api/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(productData),
         });
 
         if (res.ok) {
@@ -73,22 +77,29 @@ export default function AdminProductsPage() {
         }
       }
 
-      // Reset form
-      setFormData({
-        name: "",
-        description: "",
-        price: "",
-        image: "",
-        category: "",
-        stock: "",
-        details: "",
-      });
-      setShowForm(false);
-      setEditingProduct(null);
+      resetForm();
     } catch (error) {
       console.error("Failed to save product:", error);
       alert("Failed to save product");
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      description: "",
+      price: "",
+      image: "",
+      images: [],
+      category: "",
+      stock: "",
+      details: "",
+      isFeatured: false,
+      isNewArrival: false,
+      isFlashSale: false,
+    });
+    setShowForm(false);
+    setEditingProduct(null);
   };
 
   const handleEdit = (product) => {
@@ -98,6 +109,7 @@ export default function AdminProductsPage() {
       description: product.description,
       price: product.price.toString(),
       image: product.image,
+      images: product.images || [],
       category: product.category,
       stock: product.stock.toString(),
       details: product.details || "",
@@ -126,41 +138,25 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingProduct(null);
-    setFormData({
-      name: "",
-      description: "",
-      price: "",
-      image: "",
-      category: "",
-      stock: "",
-      details: "",
-      isFeatured: false,
-      isNewArrival: false,
-      isFlashSale: false,
-    });
-  };
-
-  const handleImageUpload = async (e) => {
+  // Upload primary image
+  const handlePrimaryImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
 
       const res = await fetch("/api/upload", {
         method: "POST",
-        body: formData,
+        body: uploadFormData,
       });
 
       if (res.ok) {
         const data = await res.json();
         setFormData((prev) => ({ ...prev, image: data.url }));
-        alert("Image uploaded successfully!");
+        alert("Primary image uploaded successfully!");
       } else {
         alert("Failed to upload image");
       }
@@ -170,6 +166,69 @@ export default function AdminProductsPage() {
     } finally {
       setUploading(false);
     }
+  };
+
+  // Upload additional images (multiple)
+  const handleAdditionalImagesUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    const uploadedUrls = [];
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", files[i]);
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadFormData,
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          uploadedUrls.push(data.url);
+        }
+      }
+
+      if (uploadedUrls.length > 0) {
+        setFormData((prev) => ({
+          ...prev,
+          images: [...prev.images, ...uploadedUrls],
+        }));
+        alert(`${uploadedUrls.length} image(s) uploaded successfully!`);
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Failed to upload some images");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Remove an additional image
+  const handleRemoveImage = (indexToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, index) => index !== indexToRemove),
+    }));
+  };
+
+  // Set an additional image as primary
+  const handleSetAsPrimary = (imageUrl) => {
+    setFormData((prev) => {
+      // Add current primary to additional images if it exists
+      const newImages = prev.image
+        ? [...prev.images.filter((img) => img !== imageUrl), prev.image]
+        : prev.images.filter((img) => img !== imageUrl);
+
+      return {
+        ...prev,
+        image: imageUrl,
+        images: newImages,
+      };
+    });
   };
 
   if (loading) {
@@ -279,48 +338,54 @@ export default function AdminProductsPage() {
                   required
                 >
                   <option value="">Select category</option>
-                  <option value="Audio">Audio</option>
-                  <option value="Wearables">Wearables</option>
+                  <option value="Flashcards">Flashcards</option>
+                  <option value="Binders">Binders</option>
+                  <option value="Story Boxes">Story Boxes</option>
+                  <option value="Quran Learning">Quran Learning</option>
+                  <option value="Islamic Books">Islamic Books</option>
                   <option value="Accessories">Accessories</option>
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Product Image
+              {/* ============================================ */}
+              {/* PRIMARY IMAGE SECTION */}
+              {/* ============================================ */}
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium mb-3">
+                  Primary Image (Main Display Image) *
                 </label>
 
-                {/* Image Preview */}
                 {formData.image && (
                   <div className="mb-3">
-                    <div className="relative w-32 h-32 border rounded">
+                    <div className="relative w-40 h-40 border-2 border-blue-500 rounded overflow-hidden">
                       <Image
                         src={formData.image}
-                        alt="Preview"
+                        alt="Primary"
                         fill
-                        className="object-cover rounded"
+                        className="object-cover"
                       />
+                      <div className="absolute top-1 left-1 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                        Primary
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Upload Button */}
                 <div className="flex gap-2 mb-2">
                   <label className="cursor-pointer">
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageUpload}
+                      onChange={handlePrimaryImageUpload}
                       className="hidden"
                       disabled={uploading}
                     />
                     <div className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-block">
-                      {uploading ? "Uploading..." : "Upload Image"}
+                      {uploading ? "Uploading..." : "Upload Primary Image"}
                     </div>
                   </label>
                 </div>
 
-                {/* Manual URL Input */}
                 <p className="text-sm text-gray-600 mb-2">
                   Or enter image URL:
                 </p>
@@ -333,6 +398,71 @@ export default function AdminProductsPage() {
                   placeholder="https://example.com/image.jpg"
                   required
                 />
+              </div>
+
+              {/* ============================================ */}
+              {/* ADDITIONAL IMAGES SECTION */}
+              {/* ============================================ */}
+              <div className="border-t pt-4">
+                <label className="block text-sm font-medium mb-3">
+                  Additional Gallery Images (Optional)
+                </label>
+
+                {/* Display existing additional images */}
+                {formData.images.length > 0 && (
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    {formData.images.map((imageUrl, index) => (
+                      <div key={index} className="relative group">
+                        <div className="relative w-24 h-24 border rounded overflow-hidden">
+                          <Image
+                            src={imageUrl}
+                            alt={`Gallery ${index + 1}`}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        {/* Action buttons overlay */}
+                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleSetAsPrimary(imageUrl)}
+                            className="p-1 bg-blue-600 text-white rounded text-xs"
+                            title="Set as primary"
+                          >
+                            ★
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(index)}
+                            className="p-1 bg-red-600 text-white rounded text-xs"
+                            title="Remove"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Upload multiple images */}
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleAdditionalImagesUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                  <div className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 inline-block">
+                    {uploading ? "Uploading..." : "+ Add More Images"}
+                  </div>
+                </label>
+                <p className="text-xs text-gray-500 mt-2">
+                  You can select multiple images at once. Hover over images to
+                  set as primary or remove.
+                </p>
               </div>
 
               {/* Homepage Sections */}
@@ -393,10 +523,10 @@ export default function AdminProductsPage() {
               </div>
 
               <div className="flex gap-2">
-                <Button type="submit">
+                <Button type="submit" disabled={uploading}>
                   {editingProduct ? "Update Product" : "Add Product"}
                 </Button>
-                <Button type="button" variant="outline" onClick={handleCancel}>
+                <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
                 </Button>
               </div>
@@ -416,6 +546,7 @@ export default function AdminProductsPage() {
                   <th className="text-left p-4">Category</th>
                   <th className="text-left p-4">Price</th>
                   <th className="text-left p-4">Stock</th>
+                  <th className="text-left p-4">Images</th>
                   <th className="text-left p-4">Actions</th>
                 </tr>
               </thead>
@@ -444,6 +575,11 @@ export default function AdminProductsPage() {
                         }
                       >
                         {product.stock}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span className="text-sm text-gray-600">
+                        {1 + (product.images?.length || 0)} image(s)
                       </span>
                     </td>
                     <td className="p-4">

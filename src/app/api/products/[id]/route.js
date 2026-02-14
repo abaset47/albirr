@@ -38,6 +38,11 @@ export async function PUT(request, { params }) {
       inStock: body.inStock !== undefined ? body.inStock : true,
     };
 
+    // Handle images array
+    if (body.images !== undefined) {
+      updateData.images = body.images;
+    }
+
     // Only add optional fields if they exist
     if (body.features !== undefined) updateData.features = body.features;
     if (body.details !== undefined) updateData.details = body.details;

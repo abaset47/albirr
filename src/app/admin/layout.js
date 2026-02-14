@@ -91,6 +91,12 @@ export default function AdminLayout({ children }) {
                 >
                   Testimonials
                 </Link>
+                <Link
+                  href="/admin/users"
+                  className="block px-4 py-2 rounded hover:bg-gray-100"
+                >
+                  Users
+                </Link>
               </nav>
             </div>
           </div>

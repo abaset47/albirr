@@ -97,7 +97,7 @@ export default function Navbar() {
 
               {/* Account Button */}
               <Link
-                href="/account"
+                href="/customer/account"
                 className="p-2 text-gray-600 hover:text-gray-900 transition-colors hidden sm:block"
               >
                 <User className="w-5 h-5" />
@@ -163,7 +163,7 @@ export default function Navbar() {
               ))}
               <hr className="my-2" />
               <Link
-                href="/account"
+                href="/customer/account"
                 className="px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors flex items-center gap-2"
                 onClick={() => setMobileMenuOpen(false)}
               >

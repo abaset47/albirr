@@ -15,6 +15,7 @@ export default function ProductDetailPage({ params }) {
   const [added, setAdded] = useState(false);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -23,6 +24,7 @@ export default function ProductDetailPage({ params }) {
         if (res.ok) {
           const data = await res.json();
           setProduct(data);
+          setSelectedImage(data.image); // Set primary image as default
         }
       } catch (error) {
         console.error("Failed to fetch product:", error);
@@ -54,6 +56,9 @@ export default function ProductDetailPage({ params }) {
     );
   }
 
+  // Combine primary image with additional images for gallery
+  const allImages = [product.image, ...(product.images || [])];
+
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
       addToCart(product);
@@ -73,20 +78,46 @@ export default function ProductDetailPage({ params }) {
         </Link>
 
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Product Image */}
-          <div>
+          {/* Product Images Section */}
+          <div className="space-y-4">
+            {/* Main Image Display */}
             <Card>
               <CardContent className="p-0">
                 <div className="relative w-full h-96 md:h-[500px]">
                   <Image
-                    src={product.image}
+                    src={selectedImage || product.image}
                     alt={product.name}
                     fill
                     className="object-cover rounded-lg"
+                    priority
                   />
                 </div>
               </CardContent>
             </Card>
+
+            {/* Thumbnail Gallery (only show if there are multiple images) */}
+            {allImages.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {allImages.map((imageUrl, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(imageUrl)}
+                    className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
+                      selectedImage === imageUrl
+                        ? "border-blue-600 ring-2 ring-blue-200"
+                        : "border-gray-200 hover:border-gray-400"
+                    }`}
+                  >
+                    <Image
+                      src={imageUrl}
+                      alt={`${product.name} - Image ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Info */}

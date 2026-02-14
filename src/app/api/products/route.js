@@ -26,6 +26,7 @@ export async function POST(request) {
         description: body.description,
         price: parseFloat(body.price),
         image: body.image,
+        images: body.images || [], // Additional gallery images
         category: body.category,
         stock: parseInt(body.stock),
         features: body.features || [],
@@ -38,6 +39,7 @@ export async function POST(request) {
     });
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
+    console.error("Create product error:", error);
     return NextResponse.json(
       { error: "Failed to create product" },
       { status: 500 }
