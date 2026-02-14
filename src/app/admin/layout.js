@@ -11,16 +11,17 @@ export default function AdminLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Don't protect the login page
   const isLoginPage = pathname === "/admin/login";
 
   useEffect(() => {
-    if (status === "unauthenticated" && !isLoginPage) {
-      router.push("/admin/login");
+    if (status === "loading") return;
+    if (!isLoginPage) {
+      if (status === "unauthenticated" || session?.user?.role !== "admin") {
+        router.push("/admin/login");
+      }
     }
-  }, [status, router, isLoginPage]);
+  }, [status, session, router, isLoginPage]);
 
-  // If it's the login page, render without protection
   if (isLoginPage) {
     return <>{children}</>;
   }
@@ -33,7 +34,7 @@ export default function AdminLayout({ children }) {
     );
   }
 
-  if (status === "unauthenticated") {
+  if (status === "unauthenticated" || session?.user?.role !== "admin") {
     return null;
   }
 
@@ -63,7 +64,6 @@ export default function AdminLayout({ children }) {
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid md:grid-cols-4 gap-6">
-          {/* Sidebar */}
           <div className="md:col-span-1">
             <div className="bg-white rounded-lg shadow p-4">
               <nav className="space-y-2">
@@ -100,8 +100,6 @@ export default function AdminLayout({ children }) {
               </nav>
             </div>
           </div>
-
-          {/* Main Content */}
           <div className="md:col-span-3">{children}</div>
         </div>
       </div>

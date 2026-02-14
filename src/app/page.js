@@ -90,12 +90,12 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Announcement Bar */}
-      <div
+      {/* <div
         className="py-2.5 text-center text-white text-sm font-medium"
         style={{ backgroundColor: brandColors.coral }}
       >
         🎉 Free Shipping on Orders Above ₹999 | Pan India Delivery
-      </div>
+      </div> */}
 
       {/* Countdown Timer Bar */}
       <div

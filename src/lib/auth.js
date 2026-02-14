@@ -42,7 +42,7 @@ export const authOptions = {
 
             const isValidPassword = await bcrypt.compare(
               password,
-              admin.password
+              admin.password,
             );
             if (!isValidPassword) {
               return null;
@@ -166,8 +166,8 @@ export const authOptions = {
     },
   },
   pages: {
-    signIn: "/login", // Default sign-in page for customers
-    error: "/login", // Error page
+    signIn: "customer/login", // Default sign-in page for customers
+    error: "customer/login", // Error page
   },
   session: {
     strategy: "jwt",

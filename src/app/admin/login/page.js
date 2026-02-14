@@ -24,6 +24,7 @@ export default function AdminLoginPage() {
         email,
         password,
         redirect: false,
+        loginType: "admin",
       });
 
       if (result?.error) {
@@ -59,7 +60,7 @@ export default function AdminLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@shop.com"
+                placeholder=""
                 required
               />
             </div>
