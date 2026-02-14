@@ -3,10 +3,12 @@ import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 const Mailjet = require("node-mailjet");
 
-const mailjet = Mailjet.apiConnect(
-  process.env.MJ_APIKEY_PUBLIC,
-  process.env.MJ_APIKEY_PRIVATE
-);
+function getMailjet() {
+  return Mailjet.apiConnect(
+    process.env.MJ_APIKEY_PUBLIC,
+    process.env.MJ_APIKEY_PRIVATE,
+  );
+}
 
 export async function POST(request) {
   try {
@@ -64,25 +66,27 @@ export async function POST(request) {
       </div>
     `;
 
-    await mailjet.post("send", { version: "v3.1" }).request({
-      Messages: [
-        {
-          From: {
-            Email: process.env.ADMIN_EMAIL,
-            Name: "AlBirr Shop",
-          },
-          To: [
-            {
-              Email: user.email,
-              Name: user.name,
+    await getMailjet()
+      .post("send", { version: "v3.1" })
+      .request({
+        Messages: [
+          {
+            From: {
+              Email: process.env.ADMIN_EMAIL,
+              Name: "AlBirr Shop",
             },
-          ],
-          Subject: "Reset Your Password - AlBirr Shop",
-          TextPart: `Reset your password by clicking this link: ${resetLink}`,
-          HTMLPart: htmlContent,
-        },
-      ],
-    });
+            To: [
+              {
+                Email: user.email,
+                Name: user.name,
+              },
+            ],
+            Subject: "Reset Your Password - AlBirr Shop",
+            TextPart: `Reset your password by clicking this link: ${resetLink}`,
+            HTMLPart: htmlContent,
+          },
+        ],
+      });
 
     return NextResponse.json({
       success: true,
@@ -92,7 +96,7 @@ export async function POST(request) {
     console.error("Failed to send reset email:", error);
     return NextResponse.json(
       { error: "Failed to send reset email" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

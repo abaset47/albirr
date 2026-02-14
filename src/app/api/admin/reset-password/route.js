@@ -5,10 +5,12 @@ import { authOptions } from "@/lib/auth";
 import crypto from "crypto";
 const Mailjet = require("node-mailjet");
 
-const mailjet = Mailjet.apiConnect(
-  process.env.MJ_APIKEY_PUBLIC,
-  process.env.MJ_APIKEY_PRIVATE
-);
+function getMailjet() {
+  return Mailjet.apiConnect(
+    process.env.MJ_APIKEY_PUBLIC,
+    process.env.MJ_APIKEY_PRIVATE,
+  );
+}
 
 export async function POST(request) {
   try {
@@ -77,25 +79,27 @@ export async function POST(request) {
       </div>
     `;
 
-    await mailjet.post("send", { version: "v3.1" }).request({
-      Messages: [
-        {
-          From: {
-            Email: process.env.ADMIN_EMAIL,
-            Name: "AlBirr Admin",
-          },
-          To: [
-            {
-              Email: admin.email,
-              Name: admin.name,
+    await getMailjet()
+      .post("send", { version: "v3.1" })
+      .request({
+        Messages: [
+          {
+            From: {
+              Email: process.env.ADMIN_EMAIL,
+              Name: "AlBirr Admin",
             },
-          ],
-          Subject: "Admin Password Reset - AlBirr",
-          TextPart: `Your admin password has been reset. Temporary password: ${tempPassword}. Login at: ${loginLink}`,
-          HTMLPart: htmlContent,
-        },
-      ],
-    });
+            To: [
+              {
+                Email: admin.email,
+                Name: admin.name,
+              },
+            ],
+            Subject: "Admin Password Reset - AlBirr",
+            TextPart: `Your admin password has been reset. Temporary password: ${tempPassword}. Login at: ${loginLink}`,
+            HTMLPart: htmlContent,
+          },
+        ],
+      });
 
     return NextResponse.json({
       success: true,
@@ -105,7 +109,7 @@ export async function POST(request) {
     console.error("Failed to send reset email:", error);
     return NextResponse.json(
       { error: "Failed to send reset email" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

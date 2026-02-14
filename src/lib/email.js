@@ -1,11 +1,12 @@
 const Mailjet = require("node-mailjet");
 const QRCode = require("qrcode");
 
-const mailjet = Mailjet.apiConnect(
-  process.env.MJ_APIKEY_PUBLIC,
-  process.env.MJ_APIKEY_PRIVATE
-);
-
+function getMailjet() {
+  return Mailjet.apiConnect(
+    process.env.MJ_APIKEY_PUBLIC,
+    process.env.MJ_APIKEY_PRIVATE,
+  );
+}
 // Your UPI details - Add these to your .env file
 const UPI_CONFIG = {
   upiId: process.env.UPI_ID || "yourname@paytm", // e.g., albirr@paytm
@@ -26,9 +27,9 @@ async function generateUPIQRCodeBuffer({
   transactionNote,
 }) {
   const upiString = `upi://pay?pa=${encodeURIComponent(
-    upiId
+    upiId,
   )}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(
-    transactionNote
+    transactionNote,
   )}`;
 
   try {
@@ -75,13 +76,13 @@ export async function sendOrderEmailToAdmin(orderData) {
         item.quantity
       }</td>
       <td style="padding: 10px; border-bottom: 1px solid #ddd;">${formatPrice(
-        item.price
+        item.price,
       )}</td>
       <td style="padding: 10px; border-bottom: 1px solid #ddd;">${formatPrice(
-        item.quantity * item.price
+        item.quantity * item.price,
       )}</td>
     </tr>
-  `
+  `,
     )
     .join("");
 
@@ -94,7 +95,7 @@ export async function sendOrderEmailToAdmin(orderData) {
         <p><strong>Customer Name:</strong> ${customerName}</p>
         <p><strong>Customer Email:</strong> ${customerEmail}</p>
         <p><strong>Order Date:</strong> ${new Date().toLocaleString(
-          "en-IN"
+          "en-IN",
         )}</p>
       </div>
 
@@ -144,35 +145,37 @@ export async function sendOrderEmailToAdmin(orderData) {
   `;
 
   try {
-    const request = await mailjet.post("send", { version: "v3.1" }).request({
-      Messages: [
-        {
-          From: {
-            Email: process.env.ADMIN_EMAIL,
-            Name: "AlBirr - The Learning House",
-          },
-          To: [
-            {
+    const request = await getMailjet()
+      .post("send", { version: "v3.1" })
+      .request({
+        Messages: [
+          {
+            From: {
               Email: process.env.ADMIN_EMAIL,
-              Name: "Admin",
+              Name: "AlBirr - The Learning House",
             },
-          ],
-          Subject: `New Order #${orderId} - ${customerName}`,
-          TextPart: `New order received from ${customerName} (${customerEmail}). Order ID: #${orderId}. Total: ${formatPrice(
-            total
-          )}`,
-          HTMLPart: htmlContent,
-          InlinedAttachments: [
-            {
-              ContentType: "image/png",
-              Filename: "upi-qr-code.png",
-              ContentID: "upi-qr-code",
-              Base64Content: qrCodeBase64,
-            },
-          ],
-        },
-      ],
-    });
+            To: [
+              {
+                Email: process.env.ADMIN_EMAIL,
+                Name: "Admin",
+              },
+            ],
+            Subject: `New Order #${orderId} - ${customerName}`,
+            TextPart: `New order received from ${customerName} (${customerEmail}). Order ID: #${orderId}. Total: ${formatPrice(
+              total,
+            )}`,
+            HTMLPart: htmlContent,
+            InlinedAttachments: [
+              {
+                ContentType: "image/png",
+                Filename: "upi-qr-code.png",
+                ContentID: "upi-qr-code",
+                Base64Content: qrCodeBase64,
+              },
+            ],
+          },
+        ],
+      });
 
     console.log("Admin email sent successfully:", request.body);
     return { success: true };
@@ -213,13 +216,13 @@ export async function sendOrderConfirmationToCustomer(orderData) {
         item.quantity
       }</td>
       <td style="padding: 10px; border-bottom: 1px solid #ddd;">${formatPrice(
-        item.price
+        item.price,
       )}</td>
       <td style="padding: 10px; border-bottom: 1px solid #ddd;">${formatPrice(
-        item.quantity * item.price
+        item.quantity * item.price,
       )}</td>
     </tr>
-  `
+  `,
     )
     .join("");
 
@@ -283,8 +286,8 @@ export async function sendOrderConfirmationToCustomer(orderData) {
           <p><strong>Delivery Address:</strong><br>
             ${shippingAddress.address}<br>
             ${shippingAddress.city}, ${shippingAddress.state} ${
-                  shippingAddress.pincode
-                }<br>
+              shippingAddress.pincode
+            }<br>
             ${shippingAddress.country || "India"}
           </p>
           `
@@ -329,7 +332,7 @@ export async function sendOrderConfirmationToCustomer(orderData) {
               <li style="margin: 8px 0;">Open any UPI app (Google Pay, PhonePe, Paytm, BHIM, etc.)</li>
               <li style="margin: 8px 0;">Scan the QR code above</li>
               <li style="margin: 8px 0;">Verify the amount: ${formatPrice(
-                total
+                total,
               )}</li>
               <li style="margin: 8px 0;">Complete the payment</li>
             </ol>
@@ -391,7 +394,7 @@ export async function sendOrderConfirmationToCustomer(orderData) {
           ],
           Subject: `Order Confirmation #${orderId} - Complete Your Payment`,
           TextPart: `Thank you for your order! Order ID: #${orderId}. Total: ${formatPrice(
-            total
+            total,
           )}. Please complete your UPI payment to: ${UPI_CONFIG.upiId}`,
           HTMLPart: htmlContent,
           InlinedAttachments: [
