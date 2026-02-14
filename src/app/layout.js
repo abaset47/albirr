@@ -4,8 +4,8 @@ import { CartProvider } from "@/context/CartContext";
 import { SessionProvider } from "@/components/SessionProvider";
 
 export const metadata = {
-  title: "Your Shop Name",
-  description: "Quality products for everyone",
+  title: "Al Birr",
+  description: "Quality Islamic products for everyone",
 };
 
 export default function RootLayout({ children }) {
