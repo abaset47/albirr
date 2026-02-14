@@ -2,7 +2,7 @@
 set -e
 
 echo "🔄 Running Prisma migrations..."
-npx prisma migrate deploy
+./node_modules/prisma/build/index.js migrate deploy
 
 echo "✅ Migrations complete. Starting Next.js..."
 exec "$@"
