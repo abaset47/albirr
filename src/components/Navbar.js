@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Dancing_Script } from "next/font/google";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
-import { Search, User, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
+import { Search, User, ShoppingBag, Menu, X, Shield } from "lucide-react";
 
 const dancingScript = Dancing_Script({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
 
-// AL-BIRR Brand Colors
 const brandColors = {
   magenta: "#E91E8C",
   orange: "#FF8C42",
@@ -23,8 +23,10 @@ const brandColors = {
 
 export default function Navbar() {
   const { getCartCount } = useCart();
+  const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const isAdmin = session?.user?.role === "admin";
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -37,21 +39,22 @@ export default function Navbar() {
 
   return (
     <header className="bg-white sticky top-0 z-50">
-      {/* Main Navbar */}
       <nav className="border-b border-gray-100">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 -ml-2 text-gray-600 hover:text-gray-900"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
+            {!isAdmin && (
+              <button
+                className="md:hidden p-2 -ml-2 text-gray-600 hover:text-gray-900"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
+              </button>
+            )}
 
             {/* Logo */}
             <Link href="/" className="flex items-center">
@@ -68,62 +71,75 @@ export default function Navbar() {
               </span>
             </Link>
 
-            {/* Desktop Navigation Links */}
-            <div className="hidden md:flex items-center gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors relative group"
-                >
-                  {link.name}
-                  <span
-                    className="absolute bottom-0 left-4 right-4 h-0.5 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"
-                    style={{ backgroundColor: brandColors.magenta }}
-                  />
-                </Link>
-              ))}
-            </div>
+            {/* Desktop Navigation Links - hide for admin */}
+            {!isAdmin && (
+              <div className="hidden md:flex items-center gap-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors relative group"
+                  >
+                    {link.name}
+                    <span
+                      className="absolute bottom-0 left-4 right-4 h-0.5 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"
+                      style={{ backgroundColor: brandColors.magenta }}
+                    />
+                  </Link>
+                ))}
+              </div>
+            )}
 
             {/* Right Side Icons */}
             <div className="flex items-center gap-1 md:gap-2">
-              {/* Search Button */}
-              <button
-                className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
-                onClick={() => setSearchOpen(!searchOpen)}
-              >
-                <Search className="w-5 h-5" />
-              </button>
-
-              {/* Account Button */}
-              <Link
-                href="/customer/account"
-                className="p-2 text-gray-600 hover:text-gray-900 transition-colors hidden sm:block"
-              >
-                <User className="w-5 h-5" />
-              </Link>
-
-              {/* Cart Button */}
-              <Link
-                href="/cart"
-                className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ShoppingBag className="w-5 h-5" />
-                {getCartCount() > 0 && (
-                  <span
-                    className="absolute -top-0.5 -right-0.5 w-5 h-5 text-xs font-bold text-white rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: brandColors.magenta }}
+              {isAdmin ? (
+                /* Admin: show admin panel link */
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors"
+                >
+                  <Shield className="w-5 h-5" />
+                  Admin Panel
+                </Link>
+              ) : (
+                /* Customer: show search, account, cart */
+                <>
+                  <button
+                    className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                    onClick={() => setSearchOpen(!searchOpen)}
                   >
-                    {getCartCount()}
-                  </span>
-                )}
-              </Link>
+                    <Search className="w-5 h-5" />
+                  </button>
+
+                  <Link
+                    href="/customer/account"
+                    className="p-2 text-gray-600 hover:text-gray-900 transition-colors hidden sm:block"
+                  >
+                    <User className="w-5 h-5" />
+                  </Link>
+
+                  <Link
+                    href="/cart"
+                    className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    {getCartCount() > 0 && (
+                      <span
+                        className="absolute -top-0.5 -right-0.5 w-5 h-5 text-xs font-bold text-white rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: brandColors.magenta }}
+                      >
+                        {getCartCount()}
+                      </span>
+                    )}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Search Bar - Expandable */}
-        {searchOpen && (
+        {/* Search Bar - only for customers */}
+        {searchOpen && !isAdmin && (
           <div className="border-t border-gray-100 py-4">
             <div className="container mx-auto px-4">
               <div className="relative max-w-xl mx-auto">
@@ -146,8 +162,8 @@ export default function Navbar() {
         )}
       </nav>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
+      {/* Mobile Menu - only for customers */}
+      {mobileMenuOpen && !isAdmin && (
         <div className="md:hidden bg-white border-b border-gray-100">
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-col gap-1">

@@ -47,16 +47,15 @@ export default function AdminLayout({ children }) {
             <div className="flex items-center gap-4">
               <span className="text-sm">Welcome, {session?.user?.email}</span>
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => signOut({ callbackUrl: "/admin/login" })}
-                className="text-white border-white hover:bg-gray-800"
+                className="bg-transparent border border-white/30 text-white hover:bg-white/10"
               >
                 Logout
               </Button>
-              <Link href="/" className="text-sm hover:text-gray-300">
+              {/* <Link href="/" className="text-sm hover:text-gray-300">
                 ← Back to Store
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>
